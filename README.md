@@ -9,3 +9,8 @@ Alessandro Di Marco 5CI
 - GET /partite/N : stato della partita N. Risposta 200, oppure 404.
 - POST /partite/N/tentativi : propone una parola, nel corpo in JSON.
 Risposta 201, oppure 400 o 404.
+
+## Come avviarlo
+- 'git clone https://github.com/AlesDiMarco/parola-segreta.git' per clonare il repository
+- 'npm install' per installare il pacchetto ws
+- 'node crea-db.mjs' per creare il database con le relative tabelle
