@@ -1,7 +1,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import { controlla } from './regole.mjs';
-import { aggiungiTentativo, creaPartita, trovaPartita } from './archivio.mjs';
+import { creaPartita, trovaPartita, aggiungiTentativo, parolaEsiste } from './archivio.mjs';
 import { leggiCorpo } from './corpo.mjs';
 
 const porta = process.env.PORTA;
@@ -27,6 +27,8 @@ function nuovoTentativo(richiesta, risposta, partita) {
       inviaJson(risposta, 400, { errore: errore });
     } else if (partita.finita) {
       inviaJson(risposta, 400, { errore: 'La partita è finita' });
+    } else if (!parolaEsiste(dati.parola)) {
+      inviaJson(risposta, 400, { errore: 'Parola non in elenco' });
     } else {
       inviaJson(risposta, 201, aggiungiTentativo(partita, dati.parola));
     }
@@ -44,6 +46,9 @@ function rispondi(richiesta, risposta) {
   if (metodo === 'GET' && percorso === '/') {
     risposta.setHeader('Content-Type', 'text/html; charset=utf-8');
     risposta.end(fs.readFileSync('pubblico/index.html'));
+  } else if (metodo === 'GET' && percorso === '/parole') {
+    const cerca = indirizzo.searchParams.get('cerca');
+    inviaJson(risposta, 200, { parola: cerca, presente: parolaEsiste(cerca) });
   } else if (metodo === 'POST' && percorso === '/partite') {
     const partita = creaPartita();
     inviaJson(risposta, 201, descrivi(partita));
@@ -53,10 +58,7 @@ function rispondi(richiesta, risposta) {
       inviaJson(risposta, 404, { errore: 'Partita inesistente' });
     } else if (metodo === 'GET' && pezzi.length === 3) {
       inviaJson(risposta, 200, descrivi(partita));
-    } else if (
-      metodo === 'POST' && pezzi.length === 4 && pezzi[3] ===
-        'tentativi'
-    ) {
+    } else if (metodo === 'POST' && pezzi.length === 4 && pezzi[3] === 'tentativi') {
       nuovoTentativo(richiesta, risposta, partita);
     } else {
       inviaJson(risposta, 404, { errore: 'Indirizzo sconosciuto' });
